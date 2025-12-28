@@ -13,7 +13,7 @@ const db = mysql.createConnection({
   host: process.env.DB_HOST,        // hopper.proxy.rlwy.net
   user: process.env.DB_USER,        // root
   password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,    // schools
+  database: process.env.DB_NAME,    // railway
   port: process.env.DB_PORT || 3306
 });
 
@@ -26,7 +26,7 @@ db.connect((err) => {
   }
 });
 
-// ✅ Health check route (VERY IMPORTANT)
+// ✅ Health check route
 app.get("/", (req, res) => {
   res.send("Student Result API is running");
 });
@@ -38,7 +38,7 @@ app.get("/result/:hallticket", (req, res) => {
   const query = "SELECT * FROM students WHERE hall_ticket = ?";
   db.query(query, [hallticket], (err, result) => {
     if (err) {
-      console.error(err);
+      console.error("DB error:", err);
       return res.status(500).json({ error: "Database error" });
     }
 
@@ -55,4 +55,5 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
+
 
