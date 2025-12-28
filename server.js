@@ -8,19 +8,26 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// ✅ MySQL connection (Railway)
+// ✅ MySQL connection (Railway + SSL)
 const db = mysql.createConnection({
   host: process.env.DB_HOST,        // hopper.proxy.rlwy.net
   user: process.env.DB_USER,        // root
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,    // railway
-  port: process.env.DB_PORT || 3306
+  port: process.env.DB_PORT || 3306,
+
+  // 🔥 IMPORTANT FIX FOR ETIMEDOUT
+  ssl: {
+    rejectUnauthorized: false
+  },
+
+  connectTimeout: 10000
 });
 
 // ✅ Connect to DB and log status
 db.connect((err) => {
   if (err) {
-    console.error("❌ MySQL connection failed:", err.message);
+    console.error("❌ MySQL connection failed:", err);
   } else {
     console.log("✅ Connected to Railway MySQL");
   }
@@ -38,8 +45,8 @@ app.get("/result/:hallticket", (req, res) => {
   const query = "SELECT * FROM students WHERE hall_ticket = ?";
   db.query(query, [hallticket], (err, result) => {
     if (err) {
-      console.error("DB error:", err);
-      return res.status(500).json({ error: "Database error" });
+      console.error("❌ SQL error:", err);
+      return res.status(500).json({ error: err.message });
     }
 
     if (result.length === 0) {
@@ -55,5 +62,3 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
-
-
